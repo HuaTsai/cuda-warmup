@@ -1,0 +1,28 @@
+# clangd config: make IntelliSense understand .cu files.
+# compile_commands.json contains nvcc commands; strip the flags clang does not
+# understand and add the CUDA paths.
+CompileFlags:
+  CompilationDatabase: build
+  Remove:
+    - -forward-unknown-to-host-compiler
+    - -arch=*
+    - --generate-code=*
+    - -rdc=*
+    - --options-file
+    - -Xcompiler=*
+    - -x                       # nvcc's `-x cu` is invalid for clang; drop it and infer from the .cu extension
+  Add:
+    # Relative paths resolve against the compile command's working directory
+    # (build/), avoiding hard-coded machine-specific paths
+    - --cuda-path=../.pixi/envs/default/targets/x86_64-linux
+    - --cuda-gpu-arch=sm_89
+    - -nocudalib                 # semantic analysis only, no need for libdevice
+    - -Wno-unknown-cuda-version  # clang 21 only knows CUDA up to 12.8, warns on 12.9
+    # clang's CUDA mode is incompatible with libstdc++ 14 (std::vector etc. fail
+    # to parse); use the system gcc 13 one instead
+    - --gcc-install-dir=/usr/lib/gcc/x86_64-linux-gnu/13
+    # When clang cannot detect the CUDA version it falls back to the pre-9.2
+    # kernel launch API (cudaConfigureCall); pin the SDK version so it uses the
+    # new API (__cudaPushCallConfiguration)
+    - -Xclang
+    - -target-sdk-version=12.8

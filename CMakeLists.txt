@@ -1,17 +1,20 @@
 cmake_minimum_required(VERSION 3.24)
 
-# 預設編譯本機 GPU 的 SASS（native），避免只嵌 PTX：
-# driver（CUDA 13.0）比 toolkit（13.3）舊時，PTX JIT 會失敗（cudaErrorUnsupportedPtxVersion）。
-# 必須在 project() 之前設定；跨機器建置可用 -DCMAKE_CUDA_ARCHITECTURES=... 覆蓋。
+# Default to building SASS for the local GPU (native) instead of relying on PTX JIT:
+# JIT fails with cudaErrorUnsupportedPtxVersion when the toolkit is newer than the
+# driver, and SASS also avoids JIT overhead. Must be set before project();
+# override with -DCMAKE_CUDA_ARCHITECTURES=... for cross-machine builds.
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES native)
 endif()
 
 project(cuda_warmup LANGUAGES CXX CUDA)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)  # for clangd
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CUDA_STANDARD 23)
+set(CMAKE_CUDA_STANDARD 20)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 add_library(vector_add src/vector_add.cu)

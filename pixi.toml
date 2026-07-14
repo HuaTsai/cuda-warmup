@@ -11,11 +11,13 @@ build = { cmd = "cmake --build build", depends-on = ["configure"] }
 test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["build"] }
 
 [system-requirements]
-cuda = "13"
+cuda = "12"
 
 [dependencies]
-cuda-toolkit = ">=13.3.1,<14"
+cuda-toolkit = ">=12.9.2,<13"
 gtest = ">=1.17.0,<2"
-cmake = ">=4.4.0,<5"
+cmake = ">=4.2.3,<5"
 ninja = ">=1.13.2,<2"
+clang-tools = ">=21,<22"
+clang = ">=21,<22"
 
