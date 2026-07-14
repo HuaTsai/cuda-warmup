@@ -5,7 +5,7 @@
 
 #include "vector_add.cuh"
 
-// ASSERT_* 只能用在回傳 void 的函式裡，所以包成 macro。
+// ASSERT_* only works in functions returning void, hence the macro.
 #define CUDA_CHECK(expr)                                      \
   do {                                                        \
     const cudaError_t err_ = (expr);                          \
@@ -21,7 +21,8 @@ class VectorAddTest : public ::testing::Test {
     }
   }
 
-  // host 準備資料 → 拷上 device → 跑 kernel → 拷回驗證的完整流程。
+  // Full round trip: prepare data on host, copy to device, run the kernel,
+  // copy back and verify.
   void RunAndVerify(int n) {
     std::vector<float> ha(n), hb(n), hc(n, -1.0f);
     for (int i = 0; i < n; ++i) {
@@ -37,8 +38,8 @@ class VectorAddTest : public ::testing::Test {
     CUDA_CHECK(cudaMemcpy(da, ha.data(), bytes, cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(db, hb.data(), bytes, cudaMemcpyHostToDevice));
 
-    CUDA_CHECK(vector_add(da, db, dc, n));  // launch 設定錯誤在這裡回報
-    CUDA_CHECK(cudaDeviceSynchronize());    // kernel 執行期錯誤在這裡回報
+    CUDA_CHECK(vector_add(da, db, dc, n));  // launch configuration errors show up here
+    CUDA_CHECK(cudaDeviceSynchronize());    // kernel runtime errors show up here
 
     CUDA_CHECK(cudaMemcpy(hc.data(), dc, bytes, cudaMemcpyDeviceToHost));
     CUDA_CHECK(cudaFree(da));
