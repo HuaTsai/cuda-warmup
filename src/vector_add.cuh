@@ -6,4 +6,4 @@
 // Launches the kernel asynchronously on the default stream; the return value
 // only covers whether the launch succeeded — kernel runtime errors surface
 // at the caller's cudaDeviceSynchronize.
-cudaError_t vector_add(const float* a, const float* b, float* c, int n);
+cudaError_t vector_add(const float *a, const float *b, float *c, int n);

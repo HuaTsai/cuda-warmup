@@ -31,12 +31,11 @@ int main() {
     cuda_check(cudaFree(da));
     cuda_check(cudaFree(db));
     cuda_check(cudaFree(dc));
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     std::fprintf(stderr, "%s\n", e.what());
     return 1;
   }
 
-  std::printf("vector_add ok: c[0]=%.1f c[%d]=%.1f\n", hc[0], n - 1,
-              hc[n - 1]);
+  std::printf("vector_add ok: c[0]=%.1f c[%d]=%.1f\n", hc[0], n - 1, hc[n - 1]);
   return 0;
 }
