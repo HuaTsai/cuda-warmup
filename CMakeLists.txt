@@ -18,11 +18,10 @@ set(CMAKE_CUDA_STANDARD 20)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 add_library(vector_add src/vector_add.cu)
-target_include_directories(vector_add PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(vector_add PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(vector_add_demo src/main.cu)
 target_link_libraries(vector_add_demo PRIVATE vector_add)
-target_include_directories(vector_add_demo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 enable_testing()
 find_package(GTest REQUIRED)

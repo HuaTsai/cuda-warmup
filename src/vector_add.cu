@@ -1,8 +1,8 @@
-#include "vector_add.cuh"
+#include "vector_add.hpp"
 
 namespace {
 
-__global__ void vector_add_kernel(const float *a, const float *b, float *c, int n) {
+__global__ void VectorAddKernel(const float *a, const float *b, float *c, int n) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i < n) {
     c[i] = a[i] + b[i];
@@ -11,12 +11,12 @@ __global__ void vector_add_kernel(const float *a, const float *b, float *c, int 
 
 }  // namespace
 
-cudaError_t vector_add(const float *a, const float *b, float *c, int n) {
+cudaError_t VectorAdd(const float *a, const float *b, float *c, int n) {
   if (n <= 0) {
     return cudaSuccess;
   }
   constexpr int kBlockSize = 256;
   const int grid = (n + kBlockSize - 1) / kBlockSize;
-  vector_add_kernel<<<grid, kBlockSize>>>(a, b, c, n);
+  VectorAddKernel<<<grid, kBlockSize>>>(a, b, c, n);
   return cudaGetLastError();
 }

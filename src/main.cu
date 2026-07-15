@@ -1,12 +1,12 @@
 #include <cstdio>
 #include <vector>
 
-#include "common.hpp"
-#include "vector_add.cuh"
+#include "check.hpp"
+#include "device_buffer.hpp"
+#include "vector_add.hpp"
 
 int main() {
   constexpr int n = 1 << 20;
-  const size_t bytes = n * sizeof(float);
 
   std::vector<float> ha(n), hb(n), hc(n);
   for (int i = 0; i < n; ++i) {
@@ -15,22 +15,13 @@ int main() {
   }
 
   try {
-    float *da = nullptr, *db = nullptr, *dc = nullptr;
-    cuda_check(cudaMalloc(&da, bytes));
-    cuda_check(cudaMalloc(&db, bytes));
-    cuda_check(cudaMalloc(&dc, bytes));
-
-    cuda_check(cudaMemcpy(da, ha.data(), bytes, cudaMemcpyHostToDevice));
-    cuda_check(cudaMemcpy(db, hb.data(), bytes, cudaMemcpyHostToDevice));
-
-    cuda_check(vector_add(da, db, dc, n));  // launch configuration errors
-    cuda_check(cudaDeviceSynchronize());    // kernel runtime errors
-
-    cuda_check(cudaMemcpy(hc.data(), dc, bytes, cudaMemcpyDeviceToHost));
-
-    cuda_check(cudaFree(da));
-    cuda_check(cudaFree(db));
-    cuda_check(cudaFree(dc));
+    DeviceBuffer<float> da(n), db(n), dc(n);
+    da.from_host(ha.data());
+    db.from_host(hb.data());
+    CudaCheck(cudaDeviceSynchronize());
+    CudaCheck(VectorAdd(da.get(), db.get(), dc.get(), n));
+    CudaCheck(cudaDeviceSynchronize());
+    dc.to_host(hc.data());
   } catch (const std::exception &e) {
     std::fprintf(stderr, "%s\n", e.what());
     return 1;
