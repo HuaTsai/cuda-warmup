@@ -18,7 +18,6 @@ int main() {
     DeviceBuffer<float> da(n), db(n), dc(n);
     da.from_host(ha.data());
     db.from_host(hb.data());
-    CudaCheck(cudaDeviceSynchronize());
     CudaCheck(VectorAdd(da.get(), db.get(), dc.get(), n));
     CudaCheck(cudaDeviceSynchronize());
     dc.to_host(hc.data());

@@ -29,6 +29,7 @@ class DeviceBuffer {
   }
 
   T *get() const { return d_data_; }
+  std::size_t size() const { return n_; }
   void from_host(const T *h_data) {
     CudaCheck(cudaMemcpy(d_data_, h_data, n_ * sizeof(T), cudaMemcpyHostToDevice));
   }
@@ -37,6 +38,6 @@ class DeviceBuffer {
   }
 
  private:
-  T *d_data_;
-  std::size_t n_;
+  T *d_data_ = nullptr;
+  std::size_t n_ = 0;
 };

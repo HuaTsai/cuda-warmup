@@ -20,13 +20,13 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 add_library(vector_add src/vector_add.cu)
 target_include_directories(vector_add PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_executable(vector_add_demo src/main.cu)
+add_executable(vector_add_demo src/main.cc)
 target_link_libraries(vector_add_demo PRIVATE vector_add)
 
 enable_testing()
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(test_vector_add tests/test_vector_add.cu)
+add_executable(test_vector_add tests/test_vector_add.cc)
 target_link_libraries(test_vector_add PRIVATE vector_add GTest::gtest_main)
 gtest_discover_tests(test_vector_add)
