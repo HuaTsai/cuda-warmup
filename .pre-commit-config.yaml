@@ -1,0 +1,20 @@
+# Pre-commit hooks. Install once per clone with `pixi run install-hooks`
+# (which runs `pre-commit install`); pre-commit is provided by the pixi env.
+#
+# clang-format runs via repo:local so it uses the repo-managed clang-format from
+# the pixi env, matching the version clangd and the build use. The mirror hook
+# (pre-commit/mirrors-clang-format) would pull its own clang-format from PyPI and
+# drift from the pixi one.
+#
+# Default behavior: if clang-format rewrites a file, the commit fails and the
+# changes are left in the working tree for review — inspect them (add
+# `// clang-format off` / `on` around anything the formatter mangles), then
+# `git add` and commit again.
+repos:
+  - repo: local
+    hooks:
+      - id: clang-format
+        name: clang-format
+        entry: .pixi/envs/default/bin/clang-format -i
+        language: system
+        files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx|cu|cuh)$
