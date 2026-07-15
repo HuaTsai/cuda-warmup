@@ -12,9 +12,20 @@ CompileFlags:
     - -Xcompiler=*
     - -x                       # nvcc's `-x cu` is invalid for clang; drop it and infer from the .cu extension
   Add:
+    # clangd drops -std when transferring a TU's command to a header that is not
+    # in compile_commands.json, so it falls back to the c++-header default
+    # (gnu++17) and c++20 features (std::format, std::source_location) fail to
+    # resolve. Pin the standard to match the nvcc build (capped at c++20).
+    - -std=c++20
     # Relative paths resolve against the compile command's working directory
     # (build/), avoiding hard-coded machine-specific paths
     - --cuda-path=../.pixi/envs/default/targets/x86_64-linux
+    # Headers such as include/common.hpp are not in compile_commands.json, so
+    # clangd treats them as plain C++ (the .hpp extension is not CUDA) where
+    # --cuda-path is ignored and <cuda_runtime.h> cannot be found. Add the CUDA
+    # include dir explicitly so the header resolves in either language mode.
+    - -isystem
+    - ../.pixi/envs/default/targets/x86_64-linux/include
     - --cuda-gpu-arch=sm_89
     - -nocudalib                 # semantic analysis only, no need for libdevice
     - -Wno-unknown-cuda-version  # clang 21 only knows CUDA up to 12.8, warns on 12.9
