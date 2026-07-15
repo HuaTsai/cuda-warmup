@@ -10,17 +10,13 @@ endif()
 
 project(cuda_warmup LANGUAGES CXX CUDA)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)  # for clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD 20)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
-# CUDA::cudart carries both the toolkit include dir and the runtime library.
-# Link it PUBLIC so plain-C++ (.cc) consumers of the host-safe headers in
-# include/ (which pull in <cuda_runtime.h>) resolve headers and cudaMalloc/etc.
-# without relying on the compiler's default search paths.
 find_package(CUDAToolkit REQUIRED)
 
 add_library(vector_add src/vector_add.cu)
