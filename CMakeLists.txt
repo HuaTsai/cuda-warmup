@@ -19,17 +19,22 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 find_package(CUDAToolkit REQUIRED)
 
-add_library(vector_add src/vector_add.cu)
-target_include_directories(vector_add PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(vector_add PUBLIC CUDA::cudart)
+add_library(${PROJECT_NAME} src/vector_add.cu src/reduce.cu)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(${PROJECT_NAME} PUBLIC CUDA::cudart)
 
-add_executable(vector_add_demo src/main.cc)
-target_link_libraries(vector_add_demo PRIVATE vector_add)
+add_executable(main src/main.cc)
+target_link_libraries(main PRIVATE ${PROJECT_NAME})
 
 enable_testing()
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(test_vector_add tests/test_vector_add.cc)
-target_link_libraries(test_vector_add PRIVATE vector_add GTest::gtest_main)
+target_link_libraries(test_vector_add PRIVATE ${PROJECT_NAME} GTest::gtest_main)
 gtest_discover_tests(test_vector_add)
+
+add_executable(test_reduce tests/test_reduce.cc)
+target_link_libraries(test_reduce PRIVATE ${PROJECT_NAME} GTest::gtest_main)
+gtest_discover_tests(test_reduce)
+
