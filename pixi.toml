@@ -8,6 +8,10 @@ version = "0.1.0"
 [tasks]
 install-hooks = "pre-commit install"
 
+# Print the docs/reduce.md Speed-Of-Light columns for saved .ncu-rep reports.
+# Trailing args are the report files, e.g. `pixi run ncu-row v0.ncu-rep v1.ncu-rep`.
+ncu-row = "bash scripts/ncu-summary.sh"
+
 # Each build type gets its own dir, so `pixi run test` is ALWAYS RelWithDebInfo
 # (optimized + -lineinfo for compute-sanitizer / Nsight), and the -debug / -release
 # variants coexist in build-debug/ and build-release/ without ever disturbing it or
