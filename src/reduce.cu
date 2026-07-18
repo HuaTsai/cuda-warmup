@@ -24,7 +24,6 @@ __global__ void ReduceSumV0Kernel(const float *d_in, float *d_out, int n) {
 }
 }  // namespace
 
-// Maximum: 1024 elements = 1024 threads
 cudaError_t ReduceSumV0(const float *d_in, float *d_out, int n) {
   if (n <= 0) {
     return cudaErrorInvalidValue;
