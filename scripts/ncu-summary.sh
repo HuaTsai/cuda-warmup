@@ -8,11 +8,22 @@
 #   pixi run ncu-row v0.ncu-rep v1.ncu-rep
 set -euo pipefail
 
-printf '| Version | N | Duration (us) | Compute %% | Memory %% | L1/TEX %% | DRAM %% | Comment |\n'
-printf '| --- | --- | --- | --- | --- | --- | --- | --- |\n'
+printf '| Version | Duration (us) | Compute %% | Memory %% | L1/TEX %% | DRAM %% |\n'
+printf '| --- | --- | --- | --- | --- | --- |\n'
 for rep in "$@"; do
   ver=$(basename "$rep" .ncu-rep)
   ncu --import "$rep" --csv --page details 2>/dev/null | awk -F'","' -v ver="$ver" '
-    $12 == "GPU Speed Of Light Throughput" { val = $15; sub(/",?$/, "", val); m[$13] = val }
-    END { printf "| %s | | %s | %s | %s | %s | %s | |\n", ver, m["Duration"], m["Compute (SM) Throughput"], m["Memory Throughput"], m["L1/TEX Cache Throughput"], m["DRAM Throughput"] }'
+    $12 == "GPU Speed Of Light Throughput" {
+      val = $15; sub(/",?$/, "", val); gsub(/,/, "", val)
+      if ($13 == "Duration") {
+        u = $14                                   # normalize to us so rows stay comparable
+        if      (u ~ /^n/)             val *= 0.001
+        else if (u ~ /^m/)            val *= 1000
+        else if (u ~ /^s/)           val *= 1000000
+        dur = sprintf("%.2f", val)
+      } else {
+        m[$13] = val
+      }
+    }
+    END { printf "| %s | %s | %s | %s | %s | %s |\n", ver, dur, m["Compute (SM) Throughput"], m["Memory Throughput"], m["L1/TEX Cache Throughput"], m["DRAM Throughput"] }'
 done
