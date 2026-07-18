@@ -41,9 +41,9 @@ kernels chase), roofline, memory/compute breakdown, and per-source-line stalls (
 kernel and every version in this repo.
 
 ```sh
-pixi run ncu -k ReduceSumV0Kernel -c 1 ./build/test_reduce                       # quick glance, to stdout
-pixi run ncu -k ReduceSumV0Kernel -c 1 --set detailed -o v0 ./build/test_reduce  # saved report -> v0.ncu-rep
-pixi run ncu-ui v0.ncu-rep                                                        # open the report in the GUI
+pixi run ncu -k ReduceSumV0Kernel -c 1 ./build/test_reduce                          # quick glance, to stdout
+pixi run ncu -k ReduceSumV0Kernel -c 1 --set detailed -f -o v0 ./build/test_reduce  # saved report -> v0.ncu-rep
+pixi run ncu-ui v0.ncu-rep                                                          # open the report in the GUI
 ```
 
 `-k` filters by kernel name; `-c 1` grabs the first of the several decomposition
