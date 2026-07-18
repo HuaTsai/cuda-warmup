@@ -6,9 +6,69 @@ CUDA practice project. The environment is managed by [pixi](https://pixi.sh)
 ## Usage
 
 ```sh
-pixi run test    # configure + build + run tests
+pixi run test    # configure + build + run tests (RelWithDebInfo: optimized + -lineinfo)
 pixi run build   # build only
 ```
+
+`test`/`build` default to **RelWithDebInfo** in `build/` — optimized device code plus
+`-lineinfo`, so compute-sanitizer and Nsight map back to source lines at no kernel-perf
+cost. Two variants live in their own dirs and never disturb the default:
+
+```sh
+pixi run test-debug     # Debug in build-debug/ (-G, cuda-gdb, device opt OFF — never benchmark)
+pixi run test-release   # Release in build-release/ (clean, no debug metadata — final numbers)
+```
+
+## Check correctness — compute-sanitizer
+
+First tool to reach for. Runtime checker that catches GPU bugs which silently corrupt
+results instead of crashing. The default `RelWithDebInfo` build adds `-lineinfo`, so
+errors point at a `reduce.cu:NN` line.
+
+```sh
+pixi run compute-sanitizer ./build/test_reduce                   # memcheck (default): out-of-bounds / misaligned access
+pixi run compute-sanitizer --tool racecheck ./build/test_reduce  # shared-memory data races (missing __syncthreads)
+```
+
+Run `racecheck` whenever you touch the shared-memory reduction tree. Both are slow
+(10–50×) — use small inputs while developing.
+
+## Profile performance — Nsight Compute (ncu)
+
+Per-kernel profiler: DRAM throughput as % of peak (the number the memory-bound
+kernels chase), roofline, memory/compute breakdown, and per-source-line stalls (needs
+`-lineinfo`, which `RelWithDebInfo` provides). This is the measurement tool for every
+kernel and every version in this repo.
+
+```sh
+pixi run ncu -k ReduceSumV0Kernel -c 1 ./build/test_reduce                       # quick glance, to stdout
+pixi run ncu -k ReduceSumV0Kernel -c 1 --set detailed -o v0 ./build/test_reduce  # saved report -> v0.ncu-rep
+pixi run ncu-ui v0.ncu-rep                                                        # open the report in the GUI
+```
+
+`-k` filters by kernel name; `-c 1` grabs the first of the several decomposition
+launches. `--set` chooses how much to collect (bigger = more kernel replays = slower):
+
+| `--set`             | metrics     | when                                                                                                  |
+| ------------------- | ----------- | ----------------------------------------------------------------------------------------------------- |
+| `basic` (default)   | 191         | fast iterate loop — SOL + occupancy, "did my DRAM % move?"                                            |
+| `detailed`          | 560         | the per-version report — adds memory workload (bank conflicts, coalescing), roofline, source counters |
+| `roofline` / `full` | 5.9k / 6.6k | extended roofline hierarchy / everything; rarely needed here                                          |
+
+`ERR_NVGPUCTRPERM` means the driver blocks non-root profiling. `sudo pixi run` fails
+(pixi isn't on root's PATH), so profile by calling ncu with its full path — the built
+binary finds its CUDA libs via RPATH, so pixi isn't needed at runtime:
+
+```sh
+sudo .pixi/envs/default/bin/ncu -k ReduceSumV0Kernel -c 1 ./build/test_reduce
+```
+
+To drop sudo for good (then plain `pixi run ncu` works), allow non-admin profiling
+once: put `options nvidia NVreg_RestrictProfilingToAdminUsers=0` in
+`/etc/modprobe.d/nvidia-profiler.conf`, run `sudo update-initramfs -u`, reboot.
+
+For a system timeline instead of per-kernel metrics, `nsys` also ships in the env
+(not on PATH: `.pixi/envs/default/nsight-compute-*/host/target-linux-x64/nsys`).
 
 ## Layout
 

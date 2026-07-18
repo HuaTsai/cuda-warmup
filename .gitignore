@@ -2,5 +2,9 @@
 .pixi/*
 !.pixi/config.toml
 
-# cmake build directory
-build/
+# cmake build directories (build/, build-debug/, build-release/)
+build*/
+
+# profiler reports (commit a text summary, not the binary blob)
+*.ncu-rep
+*.nsys-rep

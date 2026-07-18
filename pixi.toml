@@ -7,9 +7,24 @@ version = "0.1.0"
 
 [tasks]
 install-hooks = "pre-commit install"
-configure = "cmake -G Ninja -S . -B build"
+
+# Each build type gets its own dir, so `pixi run test` is ALWAYS RelWithDebInfo
+# (optimized + -lineinfo for compute-sanitizer / Nsight), and the -debug / -release
+# variants coexist in build-debug/ and build-release/ without ever disturbing it or
+# forcing a rebuild when you switch. Default (build/):
+configure = "cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo"
 build = { cmd = "cmake --build build", depends-on = ["configure"] }
 test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["build"] }
+
+# Debug (build-debug/): -G, cuda-gdb, device optimization off. Never benchmark with this.
+configure-debug = "cmake -G Ninja -S . -B build-debug -DCMAKE_BUILD_TYPE=Debug"
+build-debug = { cmd = "cmake --build build-debug", depends-on = ["configure-debug"] }
+test-debug = { cmd = "ctest --test-dir build-debug --output-on-failure", depends-on = ["build-debug"] }
+
+# Release (build-release/): clean, fastest, no debug metadata — final benchmark numbers.
+configure-release = "cmake -G Ninja -S . -B build-release -DCMAKE_BUILD_TYPE=Release"
+build-release = { cmd = "cmake --build build-release", depends-on = ["configure-release"] }
+test-release = { cmd = "ctest --test-dir build-release --output-on-failure", depends-on = ["build-release"] }
 
 [system-requirements]
 cuda = "12"
