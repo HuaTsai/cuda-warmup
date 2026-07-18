@@ -7,7 +7,7 @@
 #include "reduce.hpp"
 
 TEST(ReduceSumV0, SimpleSum) {
-  constexpr int n = 1000000;
+  constexpr int n = 10'000'000;
   std::vector<float> h_in(n, 1.f);
   DeviceBuffer<float> d_in(n), d_out(1);
   d_in.from_host(h_in.data());
@@ -18,7 +18,7 @@ TEST(ReduceSumV0, SimpleSum) {
 }
 
 TEST(ReduceSumV1, SimpleSum) {
-  constexpr int n = 1000000;
+  constexpr int n = 10'000'000;
   std::vector<float> h_in(n, 1.f);
   DeviceBuffer<float> d_in(n), d_out(1);
   d_in.from_host(h_in.data());
