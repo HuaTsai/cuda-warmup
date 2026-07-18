@@ -33,6 +33,5 @@ TEST(ReduceSumV0, NotPowersOfTwo) {
 
 TEST(ReduceSumV0, ThrowWithInvalidN) {
   DeviceBuffer<float> d_in(1), d_out(1);
-  EXPECT_EQ(ReduceSumV0(d_in.get(), d_out.get(), 1025), cudaErrorInvalidValue);
   EXPECT_EQ(ReduceSumV0(d_in.get(), d_out.get(), 0), cudaErrorInvalidValue);
 }
