@@ -116,6 +116,35 @@ __global__ void ReduceSumV4Kernel(const float *d_in, float *d_out, int n) {
     }
   }
 }
+
+template <int kBlockSize>
+__global__ void ReduceSumV5Kernel(const float *d_in, float *d_out, int n) {
+  __shared__ float sdata[kBlockSize];
+  int bid = blockIdx.x;
+  int tid = threadIdx.x;
+  int idx1 = (bid * 2) * kBlockSize + tid;
+  int idx2 = idx1 + kBlockSize;
+
+  sdata[tid] = (idx1 < n ? d_in[idx1] : 0.f) + (idx2 < n ? d_in[idx2] : 0.f);
+  __syncthreads();
+
+  for (int s = kBlockSize / 2; s >= 64; s >>= 1) {
+    if (tid < s) {
+      sdata[tid] += sdata[tid + s];
+    }
+    __syncthreads();
+  }
+
+  if (tid < 32) {
+    float val = sdata[tid] + sdata[tid + 32];
+    for (int s = 16; s >= 1; s >>= 1) {
+      val += __shfl_down_sync(0xffffffff, val, s);
+    }
+    if (tid == 0) {
+      d_out[bid] = val;
+    }
+  }
+}
 }  // namespace
 
 template <void (*Kernel)(const float *, float *, int)>
@@ -188,7 +217,39 @@ cudaError_t ReduceSumV4(const float *d_in, float *d_out, int n) {
   return ReduceSumV3toV4<ReduceSumV4Kernel>(d_in, d_out, n);
 }
 
-// cudaError_t ReduceSumV5(const float *d_in, float *d_out, int n);
+template <int kBlockSize>
+cudaError_t ReduceSumV5(const float *d_in, float *d_out, int n) {
+  if (n <= 0) {
+    return cudaErrorInvalidValue;
+  }
+
+  int blocks = (n + (2 * kBlockSize) - 1) / (2 * kBlockSize);
+  DeviceBuffer<float> d_mid(blocks);
+  ReduceSumV5Kernel<kBlockSize><<<blocks, kBlockSize>>>(d_in, d_mid.get(), n);
+  n = blocks;
+
+  while (n > 1) {
+    blocks = (n + (2 * kBlockSize) - 1) / (2 * kBlockSize);
+    DeviceBuffer<float> d_mid2(blocks);
+    ReduceSumV5Kernel<kBlockSize><<<blocks, kBlockSize>>>(d_mid.get(), d_mid2.get(), n);
+
+    d_mid = std::move(d_mid2);
+    n = blocks;
+  }
+  cudaMemcpy(d_out, d_mid.get(), sizeof(float), cudaMemcpyDeviceToDevice);
+
+  return cudaGetLastError();
+}
+
+template cudaError_t ReduceSumV5<64>(const float *d_in, float *d_out, int n);
+
+template cudaError_t ReduceSumV5<128>(const float *d_in, float *d_out, int n);
+
+template cudaError_t ReduceSumV5<256>(const float *d_in, float *d_out, int n);
+
+template cudaError_t ReduceSumV5<512>(const float *d_in, float *d_out, int n);
+
+template cudaError_t ReduceSumV5<1024>(const float *d_in, float *d_out, int n);
 
 // cudaError_t ReduceSumV6(const float *d_in, float *d_out, int n);
 

@@ -27,6 +27,8 @@ TEST(ReduceSumV3, SimpleSum) { ReduceTestHelper(ReduceSumV3); }
 
 TEST(ReduceSumV4, SimpleSum) { ReduceTestHelper(ReduceSumV4); }
 
+TEST(ReduceSumV5, SimpleSum) { ReduceTestHelper(ReduceSumV5); }
+
 TEST(ReduceSumV0, ThrowWithInvalidN) {
   DeviceBuffer<float> d_in(1), d_out(1);
   EXPECT_EQ(ReduceSumV0(d_in.get(), d_out.get(), 0), cudaErrorInvalidValue);

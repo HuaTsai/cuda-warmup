@@ -11,3 +11,4 @@ N = 10,000,000 elements
 | v2      | 415.20        | 89.02     | 89.02    | 89.28    | 39.65  | Remove bank conflicts                                  |
 | v3      | 240.03        | 79.84     | 89.87    | 80.31    | 89.87  | Use 1 thread block to compute 2 array blocks           |
 | v4      | 217.25        | 34.35     | 95.98    | 34.72    | 95.98  | Warp-shuffle the last warp, dropping its __syncthreads |
+| v5      | 219.68        | 33.96     | 96.09    | 34.37    | 96.09  | Use `template <int kBlockSize>` for kernel             |

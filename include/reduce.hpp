@@ -10,7 +10,8 @@ cudaError_t ReduceSumV3(const float *d_in, float *d_out, int n);
 
 cudaError_t ReduceSumV4(const float *d_in, float *d_out, int n);
 
-// cudaError_t ReduceSumV5(const float *d_in, float *d_out, int n);
+template <int kBlockSize = 256>
+cudaError_t ReduceSumV5(const float *d_in, float *d_out, int n);
 
 // cudaError_t ReduceSumV6(const float *d_in, float *d_out, int n);
 
